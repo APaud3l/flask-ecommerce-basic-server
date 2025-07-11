@@ -51,4 +51,4 @@ def seed_tables():
     
     db.session.commit()
 
-    print("Table seeded.")
+    print("Table seeded successfully.")
