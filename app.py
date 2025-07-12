@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
@@ -62,10 +62,12 @@ def seed_tables():
         stock = 5
     )
 
-    product2 = Product()
-    product2.name = "Product 2"
-    product2.price = 15
-    product2.stock = 0
+    product2 = Product(
+        name = "Product 2",
+        description = "This is Product 2",
+        price = 13,
+        stock = 0
+    )
 
     # Like Git operations, we need to add and commit
     db.session.add(product1)
@@ -100,3 +102,50 @@ def get_a_product(product_id):
         return jsonify(data)
     else:
         return jsonify({"message": f"Product with id {product_id} does not exist."}), 404
+
+# CREATE a product
+# POST /products
+@app.route("/products", methods=["POST"])
+def create_product():
+    # Statement: INSERT INTO products(arg1, arg2, ..) VALUES (value1, value2, ..)
+    # Get the body JSON data
+    body_data = request.get_json()
+    # Create a Product object and pass on the values
+    new_product = Product(
+        name = body_data.get("name"),
+        description = body_data.get("description"),
+        price = body_data.get("price"),
+        stock = body_data.get("stock")
+    )
+    # Add to the session and commit
+    db.session.add(new_product)
+    db.session.commit()
+
+    # Return the newly created product
+    data = product_schema.dump(new_product)
+    return jsonify(data), 201
+
+# DELETE a product
+# DELETE /products/id
+@app.route("/products/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+    # Statement: DELETE * FROM products WHERE id=product_id;
+    # Find the product with the product_id from the database
+    # Statement: SELECT * FROM products WHERE id = product_id;
+    # Method 1:
+    # stmt = db.select(Product).filter_by(id=product_id)
+    # product = db.session.scalar(stmt)
+    # Method 2:
+    product = Product.query.get(product_id)
+    # if it exists
+    if product:
+        # delete the product
+        db.session.delete(product)
+        db.session.commit()
+        # send an acknowledgement message
+        return {"message": f"Product with id {product_id} deleted successfully."}
+    # else
+    else:
+        # send an acknowledgement message
+        return {"message": f"Product with id {product_id} does not exist."}
+    
