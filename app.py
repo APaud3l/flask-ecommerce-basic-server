@@ -1,5 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 app = Flask(__name__)
 
@@ -8,6 +10,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']="postgresql+psycopg2://mar_user:123456@localhost:5432/mar_ecommerce"
 
 db = SQLAlchemy(app)
+ma = Marshmallow(app)
 
 class Product(db.Model):
     # Define table name
@@ -19,6 +22,22 @@ class Product(db.Model):
     description = db.Column(db.String(255))
     price = db.Column(db.Float)
     stock = db.Column(db.Integer)
+
+    def __init__(self, name, description, price, stock):
+        self.name = name
+        self.description = description
+        self.price = price
+        self.stock = stock
+
+
+# Create a class for ProductSchema
+class ProductSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = Product
+        load_instance = True
+
+# ProductSchema instance to handle multiple products
+products_schema = ProductSchema(many=True)
 
 @app.cli.command("create") # flask create
 def create_table():
@@ -52,3 +71,16 @@ def seed_tables():
     db.session.commit()
 
     print("Table seeded successfully.")
+
+# CRUD Operations on the Products Table
+# GET, POST, PUT, PATCH, DELETE
+# READ Operation - GET method
+# GET /products
+@app.route("/products")
+def get_products():
+    # Statement: SELECT * FROM products;
+    products_list = Product.query.all()
+
+    # Convert the object to JSON format - Serialise
+    data = products_schema.dump(products_list)
+    return data
