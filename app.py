@@ -149,3 +149,32 @@ def delete_product(product_id):
         # send an acknowledgement message
         return {"message": f"Product with id {product_id} does not exist."}
     
+# UPDATE method: PUT, PATCH
+# PUT/PATCH /products/id
+@app.route("/products/<int:product_id>", methods=["PUT", "PATCH"])
+def update_product(product_id):
+    # Statement: UPDATE products SET column_name=value;
+    # Find the product with the id = product_id
+    product = Product.query.get(product_id)
+    # if product exists
+    if product:
+        # Fetch the updated values from the request body
+        body_data = request.get_json()
+        # Update the values - SHORT CIRCUIT
+        # product.name = body_data.get("name") or product.name
+        # product.description = body_data.get("description") or product.description
+        # product.price = body_data.get("price") or product.price
+        # product.stock = body_data.get("stock") or product.stock
+
+        product.name = body_data.get("name", product.name)
+        product.description = body_data.get("description", product.description)
+        product.price = body_data.get("price", product.price)
+        product.stock = body_data.get("stock", product.stock)        
+
+        db.session.commit()
+        # acknowledgement message
+        return jsonify(product_schema.dump(product))
+    # else
+    else:
+        # acknowledgement message
+        return {"message": f"Product with id {product_id} does not exist."}, 404
