@@ -177,4 +177,4 @@ def update_product(product_id):
     # else
     else:
         # acknowledgement message
-        return {"message": f"Product with id {product_id} does not exist."}, 404
+        return {"message": f"Product with id '{product_id}' does not exist."}, 404
