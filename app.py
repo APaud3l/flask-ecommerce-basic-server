@@ -96,6 +96,23 @@ def seed_tables():
     db.session.add(product1)
     db.session.add(product2)
     
+    # Create a list of categories object
+    categories = [
+        Category(
+            name = "Electronics",
+            description = "Gadgets and tech"
+        ), 
+        Category(
+            name = "Books",
+            description = "Fiction, non-fiction and everything in between"
+        ), 
+        Category(
+            name = "Supplies"
+        )
+    ]
+    # Add the list to the session
+    db.session.add_all(categories)
+
     db.session.commit()
 
     print("Table seeded successfully.")
